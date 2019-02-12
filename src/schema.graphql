@@ -1,0 +1,503 @@
+# Physical address template used in the marketplace
+type Address {
+  # ID
+  id: ID!
+  # Flat number or building name
+  building: String!
+  # Locality, area, or street
+  locality: String!
+  # City
+  city: String!
+  # Postal Code
+  postalCode: String!
+  # State
+  state: String!
+  # Landmark nearby, optional
+  landmark: String
+  # Latitude of this location; constraint: Decimal(9,6)
+  latitude: Float
+  # Longitude of this location; constraint: Decimal(9,6)
+  longitude: Float
+  # Name of the address resident
+  recipientName: String!
+  # Mobile number of the address resident
+  recipientMobile: String!
+  # Alternate mobile number of the address resident
+  recipientAlternateMobile: String
+  # Address type option, available only to a user
+  addressType: AddressType!
+}
+
+input AddressCreateInput {
+  building: String!
+  locality: String!
+  city: String!
+  postalCode: String!
+  state: String!
+  landmark: String
+  latitude: Float
+  longitude: Float
+  recipientName: String!
+  recipientMobile: String!
+  recipientAlternateMobile: String
+  addressType: AddressType!
+}
+
+input AddressCreateOneInput {
+  create: AddressCreateInput
+  connect: AddressWhereUniqueInput
+}
+
+enum AddressOrderByInput {
+  id_ASC
+  id_DESC
+}
+
+# Types of addresses for a user
+enum AddressType {
+  HOME
+  WORK
+}
+
+input AddressUpdateInput {
+  building: String
+  locality: String
+  city: String
+  postalCode: String
+  state: String
+  landmark: String
+  latitude: Float
+  longitude: Float
+  recipientName: String
+  recipientMobile: String
+  recipientAlternateMobile: String
+  addressType: AddressType
+}
+
+input AddressWhereInput {
+  id: ID
+  id_not: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_gt: ID
+  id_gte: ID
+  id_contains: ID
+  id_not_contains: ID
+  id_starts_with: ID
+  id_not_starts_with: ID
+  id_ends_with: ID
+  id_not_ends_with: ID
+  userAddress: UserWhereInput
+  AND: [AddressWhereInput!]
+  OR: [AddressWhereInput!]
+  NOT: [AddressWhereInput!]
+}
+
+input AddressWhereUniqueInput {
+  id: ID
+}
+
+# Aggregate info on Post connection
+type AggregatePost {
+  # Number of posts in a connection
+  count: Int!
+}
+
+# Return object for mutation operation on multiple nodes
+type BatchPayload {
+  count: Int!
+}
+
+type CreatePostMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  post: Post
+}
+
+type CreateUserAccountMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  user: User
+}
+
+type DeleteAddressMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  address: Address
+}
+
+type DeletePostMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  post: Post
+}
+
+# Gender
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+type LikePostMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  post: Post
+  user: User
+}
+
+type Mutation {
+  _blank: String
+  # Delete an address
+  deleteAddress(where: AddressWhereUniqueInput!): DeleteAddressMutationResponse!
+  # Store creates a post
+  createPost(data: PostCreateInput!): CreatePostMutationResponse!
+  # Store updates "text" of a post
+  updatePostText(
+    data: PostTextUpdateInput!
+    where: PostWhereUniqueInput!
+  ): UpdatePostTextMutationResponse!
+  # Store deletes a post
+  deletePost(where: PostWhereUniqueInput!): DeletePostMutationResponse!
+  # User likes/unlikes a post
+  likePost(
+    data: PostUserLikesWhereUniqueInput!
+    where: PostWhereUniqueInput!
+  ): LikePostMutationResponse!
+  # User shares a post
+  sharePost(where: PostUserWhereUniqueInput!): SharePostMutationResponse!
+  # Create a User on sign up
+  createUserAccount(
+    data: UserAccountCreateInput!
+  ): CreateUserAccountMutationResponse!
+  # User updates profile & address
+  updateUserAccount(
+    data: UserAccountUpdateInput!
+  ): UpdateUserAccountMutationResponse!
+}
+
+# MutationResponse interface enables transactional information to be returned in
+# addition to the normal mutation response object
+interface MutationResponse {
+  # code is a string representing a transactional value explaining details about
+  # the status of the data change. Think of this like an HTTP status code.
+  code: String!
+  # success is a boolean indicating whether the update was successful or not.
+  success: Boolean!
+  # message is a string that is meant to be a human-readable description of the
+  # status of the transaction. It is intended to be used in the UI of the product.
+  message: String!
+}
+
+# Types of mutation
+enum MutationType {
+  CREATED
+  UPDATED
+  DELETED
+}
+
+type NewPostSubscriptionResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  node: Post
+  mutation: MutationType!
+}
+
+interface Node {
+  id: ID!
+}
+
+# Info helpful with pagination
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Post {
+  # ID
+  id: ID!
+  # Author user
+  author: User!
+  # Text content
+  text: String
+  # Users who liked this post
+  likedBy(after: String, first: Int): [User!]
+  # Number of Users who liked this post
+  likedByCounter: Int
+  # Users who shared this post
+  sharedBy(after: String, first: Int): [User!]
+  # Number of Users who shared this post
+  sharedByCounter: Int
+}
+
+# Post cursor-based connection type
+type PostConnection {
+  # Page info
+  pageInfo: PageInfo!
+  # Edge info
+  edges: [PostEdge]!
+  # Aggregate info
+  aggregate: AggregatePost!
+}
+
+input PostCreateInput {
+  text: String
+}
+
+# Post connection edge type
+type PostEdge {
+  # Post node
+  node: Post!
+  # Cursor
+  cursor: String!
+}
+
+enum PostOrderByInput {
+  id_ASC
+  id_DESC
+}
+
+# A post's previous values, required in subscription
+type PostPreviousValues {
+  # ID
+  id: ID!
+  # Text content
+  text: String
+}
+
+input PostTextUpdateInput {
+  text: String
+}
+
+input PostUserLikesWhereUniqueInput {
+  connect: UserWhereUniqueInput
+  disconnect: UserWhereUniqueInput
+}
+
+input PostUserWhereUniqueInput {
+  User: UserWhereUniqueInput!
+  post: PostWhereUniqueInput!
+}
+
+input PostWhereInput {
+  id: ID
+  id_not: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_gt: ID
+  id_gte: ID
+  id_contains: ID
+  id_not_contains: ID
+  id_starts_with: ID
+  id_not_starts_with: ID
+  id_ends_with: ID
+  id_not_ends_with: ID
+  likedBy_every: UserWhereInput
+  likedBy_some: UserWhereInput
+  likedBy_none: UserWhereInput
+  sharedBy_every: UserWhereInput
+  sharedBy_some: UserWhereInput
+  sharedBy_none: UserWhereInput
+  AND: [PostWhereInput!]
+  OR: [PostWhereInput!]
+  NOT: [PostWhereInput!]
+}
+
+input PostWhereUniqueInput {
+  id: ID
+}
+
+type Query {
+  _blank: String
+  # Get an address by ID
+  address(where: AddressWhereUniqueInput!): Address
+  # Get a node by ID
+  node(id: ID!): Node
+  # Get a post by ID
+  post(where: PostWhereUniqueInput!): Post
+  # Paginated (cursor-based) list of posts
+  postsConnection(
+    where: PostWhereInput
+    orderBy: PostOrderByInput
+    skip: Int
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostConnection!
+  # Get a User by ID
+  user(where: UserWhereUniqueInput!): User
+}
+
+type SharePostMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  post: Post
+  user: User
+}
+
+type Subscription {
+  _blank: String
+  # Creation of a new post is subscribed
+  postAdded: NewPostSubscriptionResponse!
+}
+
+type UpdatePostTextMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  post: Post
+}
+
+type UpdateUserAccountMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  user: User
+}
+
+type User {
+  # ID
+  id: ID!
+  # Email id of the User (unique)
+  emailId: String!
+  # Mobile number of the User (unique)
+  mobileNumber: String
+  # Name of the User
+  name: String
+  # Profile photo URL
+  profilePhotoURL: String
+  # Gender
+  gender: Gender
+  # Addresses registered by the User
+  addresses(
+    where: AddressWhereInput
+    orderBy: AddressOrderByInput
+    skip: Int
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): [Address!]
+  # Posts liked by the User
+  likedPosts(
+    where: PostWhereInput
+    orderBy: PostOrderByInput
+    skip: Int
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): [Post!]
+  # Posts shared by the User
+  sharedPosts(
+    where: PostWhereInput
+    orderBy: PostOrderByInput
+    skip: Int
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): [Post!]
+  # App rating given by the User
+  appRating: Int
+}
+
+input UserAccountCreateInput {
+  emailId: String!
+  mobileNumber: String
+  name: String
+  profilePhotoURL: String
+  gender: Gender
+  address: AddressCreateOneInput!
+}
+
+input UserAccountUpdateInput {
+  emailId: String
+  mobileNumber: String
+  name: String
+  profilePhotoURL: String
+  gender: Gender
+  address: AddressUpdateInput
+}
+
+enum UserOrderByInput {
+  id_ASC
+  id_DESC
+  emailId_ASC
+  emailId_DESC
+}
+
+input UserWhereInput {
+  id: ID
+  id_not: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_gt: ID
+  id_gte: ID
+  id_contains: ID
+  id_not_contains: ID
+  id_starts_with: ID
+  id_not_starts_with: ID
+  id_ends_with: ID
+  id_not_ends_with: ID
+  emailId: String
+  emailId_not: String
+  emailId_in: [String!]
+  emailId_not_in: [String!]
+  emailId_lt: String
+  emailId_lte: String
+  emailId_gt: String
+  emailId_gte: String
+  emailId_contains: String
+  emailId_not_contains: String
+  emailId_starts_with: String
+  emailId_not_starts_with: String
+  emailId_ends_with: String
+  emailId_not_ends_with: String
+  gender: Gender
+  gender_not: Gender
+  gender_in: [Gender!]
+  gender_not_in: [Gender!]
+  addresses_every: AddressWhereInput
+  addresses_some: AddressWhereInput
+  addresses_none: AddressWhereInput
+  likedPosts_every: PostWhereInput
+  likedPosts_some: PostWhereInput
+  likedPosts_none: PostWhereInput
+  sharedPosts_every: PostWhereInput
+  sharedPosts_some: PostWhereInput
+  sharedPosts_none: PostWhereInput
+  appRating: Int
+  appRating_not: Int
+  appRating_in: [Int!]
+  appRating_not_in: [Int!]
+  appRating_lt: Int
+  appRating_lte: Int
+  appRating_gt: Int
+  appRating_gte: Int
+  AND: [UserWhereInput!]
+  OR: [UserWhereInput!]
+  NOT: [UserWhereInput!]
+}
+
+input UserWhereUniqueInput {
+  id: ID
+  emailId: String
+}
+
